@@ -17,7 +17,7 @@ export type AuthCodeProps = {
   isPassword?: boolean;
   length?: number;
   placeholder?: string;
-  onChange: (res: string) => void;
+  onChange: (res: string, completed: boolean) => void;
 };
 
 type InputMode = 'text' | 'numeric';
@@ -101,7 +101,7 @@ const AuthCode = forwardRef<AuthCodeRef, AuthCodeProps>(
           }
           inputsRef.current[0].focus();
         }
-        sendResult();
+        sendResult(false);
       }
     }));
 
@@ -111,9 +111,9 @@ const AuthCode = forwardRef<AuthCodeRef, AuthCodeProps>(
       }
     }, []);
 
-    const sendResult = () => {
+    const sendResult = (maybeCompleted: boolean) => {
       const res = inputsRef.current.map((input) => input.value).join('');
-      onChange && onChange(res);
+      onChange && onChange(res, maybeCompleted && res.length === length);
     };
 
     const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -134,7 +134,7 @@ const AuthCode = forwardRef<AuthCodeRef, AuthCodeProps>(
           e.target.value = '';
         }
       }
-      sendResult();
+      sendResult(e.target === inputsRef.current[length - 1]);
     };
 
     const handleOnKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -151,7 +151,7 @@ const AuthCode = forwardRef<AuthCodeRef, AuthCodeProps>(
         } else {
           target.value = '';
         }
-        sendResult();
+        sendResult(false);
       }
     };
 
@@ -170,15 +170,16 @@ const AuthCode = forwardRef<AuthCodeRef, AuthCodeProps>(
         if (pastedCharacter.match(inputProps.pattern)) {
           if (!currentValue) {
             inputsRef.current[currentInput].value = pastedCharacter;
-            if (inputsRef.current[currentInput].nextElementSibling !== null) {
-              (inputsRef.current[currentInput]
-                .nextElementSibling as HTMLInputElement).focus();
-              currentInput++;
+            if (inputsRef.current[currentInput].nextElementSibling === null) {
+              break;
             }
+            (inputsRef.current[currentInput]
+              .nextElementSibling as HTMLInputElement).focus();
+            currentInput++;
           }
         }
       }
-      sendResult();
+      sendResult(true);
 
       e.preventDefault();
     };
