@@ -64,7 +64,7 @@ var AuthCode = forwardRef(function (_ref, ref) {
           inputsRef.current[0].focus();
         }
 
-        sendResult();
+        sendResult(false);
       }
     };
   });
@@ -74,11 +74,11 @@ var AuthCode = forwardRef(function (_ref, ref) {
     }
   }, []);
 
-  var sendResult = function sendResult() {
+  var sendResult = function sendResult(maybeCompleted) {
     var res = inputsRef.current.map(function (input) {
       return input.value;
     }).join('');
-    onChange && onChange(res);
+    onChange && onChange(res, maybeCompleted && res.length === length);
   };
 
   var handleOnChange = function handleOnChange(e) {
@@ -102,7 +102,7 @@ var AuthCode = forwardRef(function (_ref, ref) {
       }
     }
 
-    sendResult();
+    sendResult(e.target === inputsRef.current[length - 1]);
   };
 
   var handleOnKeyDown = function handleOnKeyDown(e) {
@@ -121,7 +121,7 @@ var AuthCode = forwardRef(function (_ref, ref) {
         target.value = '';
       }
 
-      sendResult();
+      sendResult(false);
     }
   };
 
@@ -141,15 +141,17 @@ var AuthCode = forwardRef(function (_ref, ref) {
         if (!currentValue) {
           inputsRef.current[currentInput].value = pastedCharacter;
 
-          if (inputsRef.current[currentInput].nextElementSibling !== null) {
-            inputsRef.current[currentInput].nextElementSibling.focus();
-            currentInput++;
+          if (inputsRef.current[currentInput].nextElementSibling === null) {
+            break;
           }
+
+          inputsRef.current[currentInput].nextElementSibling.focus();
+          currentInput++;
         }
       }
     }
 
-    sendResult();
+    sendResult(true);
     e.preventDefault();
   };
 
